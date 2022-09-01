@@ -1,0 +1,8 @@
+#!/bin/bash
+ip=$1
+webapi="http://ip-api.com/json/"
+curl -s $webapi$ip | python3 /home/hamob003/bin/whoisip.py
+
+#jsoncurl=$webapi$ip
+#echo $jsoncurl | python3 whoisip.py
+#python3 whoisip.py $jsoncurl
