@@ -7,6 +7,7 @@ import textfsm
 fieldslist = ['status', 'message', 'country', 'countryCode',
               'region', 'regionName', 'city', 'isp', 'org', 'as', 'query']
 fields = ",".join(fieldslist)
+#fields = '66842623'
 
 
 def get_ip_location_http_client(ip_address):
@@ -25,7 +26,7 @@ def get_ip_location_http_client(ip_address):
         conn = http.client.HTTPConnection("ip-api.com", timeout=4)
         # fields = "60959"
 
-        conn.request("GET", f"/json/{ip_address}?{fields}")
+        conn.request("GET", f"/json/{ip_address}?fields={fields}")
         resp = conn.getresponse()
         data = resp.read()
         conn.close()
@@ -35,7 +36,7 @@ def get_ip_location_http_client(ip_address):
         return None
 
 
-def get_ip_locations(method='POST', apifunction='/batch', payload="", headers={'Content-Type': 'application/json'}):
+def get_ip_locations(method='POST', apifunction='/batch?fields=7401471', payload="", headers={'Content-Type': 'application/json'}):
     """
     Fetches location information for a list of IP addresses using the ip-api.com batch endpoint.
 
@@ -113,9 +114,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Get location information for an IP address.")
     parser.add_argument("ip_address", nargs="?",
-                        help="The IP address to look up.", default="8.8.8.8")
-    parser.add_argument("--multiline", "-m", default=False,
-                        help="The IP address to look up.", action='store_true')
+                        help="The IP address to look up.", default="")
+    parser.add_argument("-m", "--multiline",  default=False,
+                        help="multiline input to look up", action='store_true')
+    parser.add_argument("-f", "--fulldetail",  default=False,
+                        help="show full details, only available for single input", action='store_true')
     args = parser.parse_args()
     ip_address = args.ip_address
     if (args.multiline):
@@ -143,11 +146,18 @@ if __name__ == "__main__":
             else:
                 print(f'{line}')
 
-    else:
+    elif (ip_address):
         location_data = get_ip_location_http_client(ip_address)
         if location_data:
-            print(
-                f'ip:{location_data["query"]},as:{location_data["as"]},country:{location_data["countryCode"]},region:{location_data["region"]},isp:{location_data["isp"]}')
+            if args.fulldetail:
+                for k, v in location_data.items():
+                    print(f'{k}:{v}')
+            else:
+                print(
+                    f'ip:{location_data["query"]},as:{location_data["as"]},country:{location_data["countryCode"]},region:{location_data["region"]},isp:{location_data["isp"]}')
+            #
             # Print other location details as needed
         else:
             print(f"Failed to retrieve location information for {ip_address}")
+    else:
+        print(f"IP Address not provided")
