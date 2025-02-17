@@ -10,54 +10,82 @@ fields = ",".join(fieldslist)
 # fields = '66842623'
 
 
-def get_ip_location_http_client(ip_address):
+headers={'Content-Type': 'application/json','User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36'}
+
+
+import http.client
+import urllib.parse
+from getpass import getpass
+import os
+import base64  # Import base64 for proxy authentication
+
+def make_proxy_request(url, method="GET", headers=None, body=None, proxy_host=None, proxy_port=None, proxy_user=None, proxy_pass=None):
     """
-    Fetches location information for a given IP address using the ip-api.com service.
+    Makes an HTTP request through a proxy.
 
     Args:
-      ip_address: The IP address to look up.
+        url: The URL to request.
+        method: The HTTP method (GET, POST, PUT, DELETE, etc.). Defaults to GET.
+        headers: A dictionary of headers to send with the request. Defaults to None.
+        body: The body of the request (for POST, PUT, etc.). Defaults to None.
+        proxy_host: The hostname or IP address of the proxy server.
+        proxy_port: The port of the proxy server.
+        proxy_user: Username for proxy authentication (optional).
+        proxy_pass: Password for proxy authentication (optional).
 
     Returns:
-      A dictionary containing location information (city, region, country, etc.) 
-      if the request is successful, otherwise None.
+        Json Object.  
+        Raises exceptions for connection errors or invalid responses.
     """
     try:
-        # context = ssl._create_unverified_context()
-        conn = http.client.HTTPConnection("ip-api.com", timeout=4)
-        # fields = "60959"
+        parsed_url = urllib.parse.urlparse(url)
+        scheme = parsed_url.scheme
+        hostname = parsed_url.netloc
+        path = parsed_url.path or "/"  # Handle cases where path is empty
+        if parsed_url.query:
+            path += "?" + parsed_url.query
 
-        conn.request("GET", f"/json/{ip_address}?fields={fields}")
-        resp = conn.getresponse()
-        data = resp.read()
+
+        if proxy_host and proxy_port:
+            # Using a proxy
+            if scheme == "https":
+                conn = http.client.HTTPSConnection(proxy_host, proxy_port)
+                # Important: You must tunnel HTTPS through the proxy using CONNECT
+                conn.set_tunnel(hostname, 443)  # Tunnel to the actual host
+            else:
+                conn = http.client.HTTPConnection(proxy_host, proxy_port)
+
+
+            if proxy_user and proxy_pass:
+                # Add proxy authentication header
+                if headers is None:
+                    headers = {}
+                auth_string = f"{proxy_user}:{proxy_pass}".encode("utf-8")
+                base64_auth = base64.b64encode(auth_string).decode("utf-8")
+                headers["Proxy-Authorization"] = f"Basic {base64_auth}"
+
+            # Important: Send the full URL to the proxy (except for HTTPS CONNECT)
+            if scheme != "https":
+                conn.request(method, url, body=body, headers=headers) # Full URL for HTTP
+            else:
+              conn.request(method, path, body=body, headers=headers) # Path only for HTTPS CONNECT
+
+
+        else:
+            # No proxy
+            if scheme == "https":
+                conn = http.client.HTTPSConnection(hostname)
+            else:
+                conn = http.client.HTTPConnection(hostname)
+            conn.request(method, path, body=body, headers=headers)
+
+        response = conn.getresponse()
+        status_code = response.status
+        response_body = response.read()
         conn.close()
-        return json.loads(data.decode('utf-8'))
+        return json.loads(response_body.decode('utf-8'))
     except Exception as e:
         print(f"Error fetching IP details: {e}")
-        return None
-
-
-def get_ip_locations(method='POST', apifunction='/batch?fields=7401471', payload="", headers={'Content-Type': 'application/json'}):
-    """
-    Fetches location information for a list of IP addresses using the ip-api.com batch endpoint.
-
-    Args:
-      ips: A list of IP addresses to look up.
-
-    Returns:
-      A list of dictionaries, each containing location information for an IP address.
-    """
-    try:
-        conn = http.client.HTTPConnection("ip-api.com", timeout=4)
-        conn.request(method, apifunction, payload, headers)
-        resp = conn.getresponse()
-        if resp.status != 200:
-            print(f"HTTP Error: {resp.status} {resp.reason}")
-            return None
-        data = resp.read().decode('utf-8')
-        conn.close()
-        return json.loads(data)
-    except Exception as e:
-        print(f"Error fetching IP locations: {e}")
         return None
 
 
@@ -121,6 +149,14 @@ if __name__ == "__main__":
                         help="show full details, only available for single input", action='store_true')
     args = parser.parse_args()
     ip_address = args.ip_address
+    print(f'use -h option for help')
+    urlmain = "http://ip-api.com"
+    proxy_host = "10.97.216.133"  # Replace with your proxy host
+    proxy_port = 8080  # Replace with your proxy port
+    print(f'password required for webproxy server:{proxy_host}:{proxy_port}')
+    proxy_user = os.getenv('USERNAME')
+    proxy_pass = getpass(f'{proxy_user}@password:')
+    
     if (args.multiline):
         inputlines = get_multiline_input()
         # print(inputlines)
@@ -134,23 +170,28 @@ if __name__ == "__main__":
         # remove duplicates
         listofips = list(dict.fromkeys(listofips))
         # locationdatareturn =[]
-        locationdatareturn = get_ip_locations(
-            apifunction=f'/batch?{fields}', payload=json.dumps(listofips))
+        url = f'{urlmain}/batch?fields={fields}'
+        locationdatareturn = make_proxy_request(url, method="POST", headers=None, body=json.dumps(listofips), proxy_host=proxy_host, proxy_port=proxy_port, proxy_user=proxy_user, proxy_pass=proxy_pass)
+        #locationdatareturn = get_ip_locations(apifunction=f'/batch?{fields}', payload=json.dumps(listofips))
         keyips = formatlistdictbykeys(inputlist=locationdatareturn)
-
+        print(f'{"*"*10}output{"*"*10}')
         for line in inputlines.splitlines():
             ipmatch = ''
             for keyip in keyips.keys():
                 if keyip in line:
                     # ipmatch = f'ip:{keyips[keyip]["query"]},as:{keyips[keyip]["as"]},country:{keyips[keyip]["countryCode"]},region:{keyips[keyip]["region"]},isp:{keyips[keyip]["isp"]}'
-                    ipmatch = f'ip:{keyips[keyip].get("query")},as:{keyips[keyip].get("as")},country:{keyips[keyip].get("countryCode")},region:{keyips[keyip].get("region")},isp:{keyips[keyip].get("isp")}'
+                    #ipmatch = f'ip:{keyips[keyip].get("query")},as:{keyips[keyip].get("as")},country:{keyips[keyip].get("countryCode")},region:{keyips[keyip].get("region")},isp:{keyips[keyip].get("isp")}'
+                    #ipmatch = f'as:{keyips[keyip].get("as")},country:{keyips[keyip].get("countryCode")},region:{keyips[keyip].get("region")},isp:{keyips[keyip].get("isp")}'
+                    ipmatch = f'as:{keyips[keyip].get("as")},country:{keyips[keyip].get("countryCode")},region:{keyips[keyip].get("region")}'
             if ipmatch:
                 print(f'{line} -> {ipmatch}')
             else:
                 print(f'{line}')
 
     elif (ip_address):
-        location_data = get_ip_location_http_client(ip_address)
+        #location_data = get_ip_location_http_client(ip_address)
+        url = f'{urlmain}/json/{ip_address}?fields={fields}'
+        location_data = make_proxy_request(url, method="GET", headers=None, body=None, proxy_host=proxy_host, proxy_port=proxy_port, proxy_user=proxy_user, proxy_pass=proxy_pass)
         if location_data:
             if args.fulldetail:
                 for k, v in location_data.items():
