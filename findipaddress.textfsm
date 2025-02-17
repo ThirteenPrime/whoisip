@@ -1,4 +1,4 @@
 Value AIPaddress (\d+\.\d+\.\d+\.\d+)
 
 Start
-  ^\s*.+?${AIPaddress}[\),\],\n] -> Record
+  ^.+?${AIPaddress}($$|\]|\)) -> Record

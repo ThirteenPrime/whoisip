@@ -7,7 +7,7 @@ import textfsm
 fieldslist = ['status', 'message', 'country', 'countryCode',
               'region', 'regionName', 'city', 'isp', 'org', 'as', 'query']
 fields = ",".join(fieldslist)
-#fields = '66842623'
+# fields = '66842623'
 
 
 def get_ip_location_http_client(ip_address):
@@ -123,9 +123,11 @@ if __name__ == "__main__":
     ip_address = args.ip_address
     if (args.multiline):
         inputlines = get_multiline_input()
+        # print(inputlines)
+        # print('*'*10)
         outputdict = parse_text_with_textfsm(
             inputlines, 'findipaddress.textfsm')
-        # print(outputdict)
+
         listofips = []
         for x in outputdict:
             listofips += list(x.values())
@@ -135,6 +137,7 @@ if __name__ == "__main__":
         locationdatareturn = get_ip_locations(
             apifunction=f'/batch?{fields}', payload=json.dumps(listofips))
         keyips = formatlistdictbykeys(inputlist=locationdatareturn)
+
         for line in inputlines.splitlines():
             ipmatch = ''
             for keyip in keyips.keys():
@@ -154,7 +157,7 @@ if __name__ == "__main__":
                     print(f'{k}:{v}')
             else:
                 print(
-                    f'ip:{location_data["query"]},as:{location_data["as"]},country:{location_data["countryCode"]},region:{location_data["region"]},isp:{location_data["isp"]}')
+                    f'ip:{location_data.get("query")},as:{location_data.get("as")},country:{location_data.get("countryCode")},region:{location_data.get("region")},isp:{location_data.get("isp")}')
             #
             # Print other location details as needed
         else:
