@@ -2,3 +2,7 @@ Value AIPaddress (\d+\.\d+\.\d+\.\d+)
 
 Start
   ^.+?${AIPaddress}($$|\]|\)) -> Record
+  ^.+?\s+${AIPaddress}\s+.*msec -> Record
+  ^\s*?${AIPaddress}\s+.*msec -> Record
+  ^.+?\s+${AIPaddress}\s+.*% -> Record
+  ^.+?\s+${AIPaddress}\s+.* -> Record
