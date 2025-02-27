@@ -33,4 +33,6 @@ def get_ip_location_http_client():
         return None
 
 
-print(get_ip_location_http_client())
+#print(get_ip_location_http_client())
+mylist=[]
+

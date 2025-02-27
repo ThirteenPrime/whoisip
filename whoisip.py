@@ -1,3 +1,4 @@
+from wherev2 import findipadlist
 import http.client
 import json
 import argparse
@@ -144,6 +145,11 @@ if __name__ == "__main__":
                 if keyip in line:
                     # ipmatch = f'ip:{keyips[keyip]["query"]},as:{keyips[keyip]["as"]},country:{keyips[keyip]["countryCode"]},region:{keyips[keyip]["region"]},isp:{keyips[keyip]["isp"]}'
                     ipmatch = f'ip:{keyips[keyip].get("query")},as:{keyips[keyip].get("as")},country:{keyips[keyip].get("countryCode")},region:{keyips[keyip].get("region")},isp:{keyips[keyip].get("isp")}'
+                    ipmatchwhere = []
+                    ipmatchwhere = findipadlist(findaddr=keyip)
+                    if ipmatchwhere:
+                        localmatchedhost = ipmatchwhere[0].split(',')[0]
+                        ipmatch = f'as:{keyips[keyip].get("as")},host:{localmatchedhost}'
             if ipmatch:
                 print(f'{line} -> {ipmatch}')
             else:
