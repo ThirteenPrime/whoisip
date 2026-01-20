@@ -1,12 +1,15 @@
 # whoisip
 whoisip for linux
 
+
 Example Usage:
+```text
 whois.bat -m
 use -h option for help
 password required for webproxy server:10.97.216.133:8080
 username@password:
 Enter multiple lines of text. Type 'END' when finished.
+
 STARTED QUERY AT 2026/01/20 13:49:53 UTC
 traceroute to 8.8.8.8 (8.8.8.8), 20 hops max, 60 byte packets
  1  _gateway (45.128.222.1)  14.377 ms  14.421 ms
@@ -22,9 +25,9 @@ traceroute to 8.8.8.8 (8.8.8.8), 20 hops max, 60 byte packets
 11  172.253.70.41 (172.253.70.41)  3.099 ms  3.178 ms
 12  72.14.232.107 (72.14.232.107)  1.569 ms  1.522 ms
 13  dns.google (8.8.8.8)  0.719 ms  0.718 ms
-end
+
 **********output**********
-e
+
 STARTED QUERY AT 2026/01/20 13:49:53 UTC
 traceroute to 8.8.8.8 (8.8.8.8), 20 hops max, 60 byte packets -> as:AS15169 Google LLC,country:US,region:VA
  1  _gateway (45.128.222.1)  14.377 ms  14.421 ms -> as:AS8888 xTom Pty Ltd,country:SG,region:03
@@ -40,3 +43,5 @@ traceroute to 8.8.8.8 (8.8.8.8), 20 hops max, 60 byte packets -> as:AS15169 Goog
 11  172.253.70.41 (172.253.70.41)  3.099 ms  3.178 ms -> as:AS15169 Google LLC,country:US,region:CA
 12  72.14.232.107 (72.14.232.107)  1.569 ms  1.522 ms -> as:AS15169 Google LLC,country:US,region:CA
 13  dns.google (8.8.8.8)  0.719 ms  0.718 ms -> as:AS15169 Google LLC,country:US,region:VA
+end
+```
