@@ -2,7 +2,7 @@
 whoisip for linux
 
 Example Usage:
->whois.bat -m
+whois.bat -m
 use -h option for help
 password required for webproxy server:10.97.216.133:8080
 username@password:
